@@ -11,12 +11,14 @@ Persistence is in memory. Withdrawals, mobile-money payouts, export sales, user 
 
 ## Team
 
-| Member | Role | Slides |
-|---|---|---|
-| [Name 1] | Domain Lead | 1, 2, 3, 15 |
-| [Name 2] | Domain Model Lead | 4, 5, 6, 10 |
-| [Name 3] | Architecture Lead | 7, 8, 9, 14 |
-| [Name 4] | Testing Lead | 11, 12, 13 |
+## Team
+
+| Member | Registration number | Role | Slides |
+|---|---|---|---|
+| SEMPALA HILLARY GODWIN | 24/U/24722/PS | Domain Lead | 1, 2, 3, 15 |
+| CHELIMO EMMANUEL| 24/U/14938/PSA | Domain Model Lead | 4, 5, 6, 10 |
+| AGABA JOEL MUHANGUZI | 24/U/23686/PS | Architecture Lead | 7, 8, 9, 14 |
+| KASIBANTE ENOCK JAMES| 24/U/15602/PSA | Testing Lead | 11, 12, 13 |
 
 ## Run
 
