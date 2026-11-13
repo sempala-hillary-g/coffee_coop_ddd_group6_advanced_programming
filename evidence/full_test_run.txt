@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: <project folder>
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 8 items
+
+tests/test_t1_moisture_reading.py::test_t1_br1_moisture_upper_boundary_accepted_and_just_above_rejected PASSED [ 12%]
+tests/test_t2_to_t8.py::test_t2_br2_graded_delivery_cannot_be_graded_again PASSED [ 25%]
+tests/test_t2_to_t8.py::test_t3_br3_delivery_rejects_an_eleventh_bag PASSED [ 37%]
+tests/test_t2_to_t8.py::test_t4_br4_payout_is_net_weight_times_daily_price PASSED [ 50%]
+tests/test_t2_to_t8.py::test_t5_br5_grading_records_delivery_graded_event PASSED [ 62%]
+tests/test_t2_to_t8.py::test_t6_br6_unknown_delivery_is_rejected_and_nothing_changes PASSED [ 75%]
+tests/test_t2_to_t8.py::test_t7_main_use_case_grades_delivery_and_credits_active_farmer PASSED [ 87%]
+tests/test_t2_to_t8.py::test_t8_suspended_account_rejects_the_follow_up_credit PASSED [100%]
+
+============================== 8 passed in 0.03s ===============================

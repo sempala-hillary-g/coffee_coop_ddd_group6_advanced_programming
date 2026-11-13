@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/claude/coffee_coop
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 1 item
+
+tests/test_t1_moisture_reading.py::test_t1_br1_moisture_upper_boundary_accepted_and_just_above_rejected FAILED [100%]
+
+=================================== FAILURES ===================================
+_____ test_t1_br1_moisture_upper_boundary_accepted_and_just_above_rejected _____
+
+    def test_t1_br1_moisture_upper_boundary_accepted_and_just_above_rejected():
+        # Boundary case: exactly 13.0% is accepted
+        reading = MoistureReading(13.0)
+        assert reading.percent == 13.0
+    
+        # Rejection case: 13.1% is too wet
+>       with pytest.raises(InvalidMoistureReading):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE InvalidMoistureReading
+
+tests/test_t1_moisture_reading.py:18: Failed
+=========================== short test summary info ============================
+FAILED tests/test_t1_moisture_reading.py::test_t1_br1_moisture_upper_boundary_accepted_and_just_above_rejected
+============================== 1 failed in 0.02s ===============================

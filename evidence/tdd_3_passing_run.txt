@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/claude/coffee_coop
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 1 item
+
+tests/test_t1_moisture_reading.py::test_t1_br1_moisture_upper_boundary_accepted_and_just_above_rejected PASSED [100%]
+
+============================== 1 passed in 0.01s ===============================
