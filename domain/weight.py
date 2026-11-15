@@ -5,6 +5,7 @@ BR4 (total net weight feeds the payout). Weights have no identity;
 two 50 kg weights are the same value.
 """
 from dataclasses import dataclass
+from math import isfinite
 
 from domain.errors import InvalidWeight
 
@@ -16,6 +17,8 @@ class Weight:
     kg: float
 
     def __post_init__(self):
+        if not isfinite(self.kg):
+            raise InvalidWeight("BR3: bag weight must be finite")
         if self.kg <= 0:
             raise InvalidWeight(f"BR3: bag weight must be more than 0 kg, got {self.kg}")
         if self.kg > MAX_BAG_KG:

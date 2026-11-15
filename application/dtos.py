@@ -1,6 +1,6 @@
 """Input and output DTOs for the Grade Delivery use case.
 
-Plain data only, so the interface layer never handles domain objects.
+Plain data only, so the main use-case boundary exposes no domain objects.
 """
 from dataclasses import dataclass
 

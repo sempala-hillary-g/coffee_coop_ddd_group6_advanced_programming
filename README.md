@@ -11,22 +11,21 @@ Persistence is in memory. Withdrawals, mobile-money payouts, export sales, user 
 
 ## Team
 
-## Team
-
 | Member | Registration number | Role | Slides |
 |---|---|---|---|
 | SEMPALA HILLARY GODWIN | 24/U/24722/PS | Domain Lead | 1, 2, 3, 15 |
-| CHELIMO EMMANUEL| 24/U/14938/PSA | Domain Model Lead | 4, 5, 6, 10 |
+| CHELIMO EMMANUEL | 24/U/14938/PSA | Domain Model Lead | 4, 5, 6, 10 |
 | AGABA JOEL MUHANGUZI | 24/U/23686/PS | Architecture Lead | 7, 8, 9, 14 |
-| KASIBANTE ENOCK JAMES| 24/U/15602/PSA | Testing Lead | 11, 12, 13 |
+| KASIBANTE ENOCK JAMES | 24/U/15602/PSA | Testing Lead | 11, 12, 13 |
+
+All four members share Integration Lead responsibilities.
 
 ## Run
 
 Requires Python 3.10 or later. Run every command from the project root (the folder containing this README). On Windows, `py` works in place of `python`.
 
 ```
-python -m pip install -r requirements.txt
-python -m pytest -v
+python -m unittest discover -v
 python -m interface.main
 ```
 
@@ -60,12 +59,12 @@ Option 1 (Grade a delivery) is the main use case and goes through `GradeDelivery
 |---|---|---|---|---|
 | BR1 Value | A moisture reading must be between 8.0% and 13.0% inclusive | `domain/moisture_reading.py` `MoistureReading` | `InvalidMoistureReading`; delivery not graded | T1 |
 | BR2 Identity/state | A delivery moves from Received to Graded; a graded delivery cannot be graded again or take more bags | `domain/delivery.py` `Delivery` | `DeliveryAlreadyGraded`; state unchanged | T2 |
-| BR3 Invariant | A delivery holds 1 to 10 bags with unique numbers, each over 0 kg and at most 60 kg; an empty delivery cannot be graded | `domain/delivery.py` `Delivery`, `Bag`; `domain/weight.py` `Weight` | `BagLimitExceeded`, `DuplicateBag`, `InvalidWeight` or `EmptyDelivery` | T3 |
+| BR3 Invariant | A received delivery holds 0 to 10 bags with unique numbers, each with finite weight over 0 kg and at most 60 kg; grading requires at least one bag | `domain/delivery.py` `Delivery`, `Bag`; `domain/weight.py` `Weight` | `BagLimitExceeded`, `DuplicateBag`, `InvalidWeight` or `EmptyDelivery` | T3 |
 | BR4 Cross-concept | Payout = total net kg × the price per kg for that variety on the delivery date | `domain/payout_calculator.py` `PayoutCalculator` | `PriceNotAvailable`; delivery not graded | T4 |
-| BR5 Follow-up | When a delivery is graded, the farmer's account must be credited with the payout | `domain/events.py` `DeliveryGraded`; `application/credit_farmer_handler.py` | `FarmerAccount` refuses; reason returned | T5, T7, T8 |
+| BR5 Follow-up | Grading requests a payout credit via DeliveryGraded; the account accepts only if active and the delivery has not already been credited | `domain/events.py` `DeliveryGraded`; `application/credit_farmer_handler.py`; `domain/farmer_account.py` | `FarmerAccount` refuses; reason returned; delivery remains graded | T5, T7, T8 |
 | BR6 Lookup | A delivery can only be graded if it and its farmer already exist | `application/grade_delivery_service.py` with both repositories | Status `NotFound`; nothing saved | T6 |
 
-Every error message starts with its rule number, for example `BR1: moisture 13.5% is outside the accepted range 8.0% to 13.0%`.
+The six numbered rules use labelled rejection messages where applicable. Supporting Money validation has its own messages.
 
 ## Domain model
 
@@ -82,6 +81,10 @@ Every error message starts with its rule number, for example `BR1: moisture 13.5
 | Layer supertype | `domain/aggregate_root.py` `AggregateRoot` | Shared event recording for both roots |
 
 ## Architecture and event flow
+
+![Clean Architecture dependency diagram](docs/architecture.png)
+
+Arrows point from each importing layer to the layer it depends on. The domain has no dependency on the other layers.
 
 ```
 domain/          value objects, entities, aggregates, domain service, event, errors
@@ -107,27 +110,33 @@ The service builds the `MoistureReading`, asks `PayoutCalculator` for the payout
 
 | Test | Rule | Checks | Kind |
 |---|---|---|---|
-| T1 | BR1 | 13.0% accepted, 13.1% rejected | Boundary, rejection |
-| T2 | BR2 | Grading a graded delivery is refused and the first payout is kept | Rejection |
-| T3 | BR3 | An 11th bag is refused and the count stays at 10 | Rejection |
-| T4 | BR4 | 150 kg Robusta at UGX 12,000 pays UGX 1,800,000; no Arabica price raises `PriceNotAvailable` | Calculation |
+| T1 | BR1 | Both boundaries accepted; values outside and NaN rejected | Boundary, rejection |
+| T2 | BR2 | Regrading, adding bags after grading and public state/identity writes refused | Rejection |
+| T3 | BR3 | Bag limit, duplicate number, immutable bag, invalid weight and empty grading | Rejection |
+| T4 | BR4 | Correct payout; correct delivery-date price; unavailable variety/date rejected | Calculation |
 | T5 | BR5 | Grading records one `DeliveryGraded` with the right farmer and payout | Event |
-| T6 | BR6 | Unknown delivery returns `NotFound` and nothing changes | Rejection |
-| T7 | Use case | Active farmer: delivery graded, event handled, balance increased | Success |
+| T6 | BR6 | Unknown delivery or farmer returns `NotFound` and nothing changes | Rejection |
+| T7 | Use case | Active farmer: delivery graded, event handled, balance increased; replayed event refused | Success, rejection |
 | T8 | Use case | Suspended farmer: delivery graded, balance unchanged, reason returned | Aggregate B rejects |
 
 ## Evidence
 
 | File | Contents |
 |---|---|
-| `evidence/tdd_1_failing_run.txt` | T1 written first; fails because `MoistureReading` does not exist |
+| `evidence/tdd_1_failing_run.txt` | Historical pytest collection failure: missing errors module |
 | `evidence/tdd_2_failing_run_stub.txt` | Bare `MoistureReading` with no check; fails because 13.1% is accepted (used on Slide 12) |
 | `evidence/tdd_3_passing_run.txt` | Range check added; T1 passes |
+| `evidence/tdd_reproduced_red.txt` | Revised T1 run in an isolated copy with validation disabled; fails |
+| `evidence/tdd_reproduced_green.txt` | Same revised T1 against final implementation; passes |
 | `evidence/full_test_run.txt` | Final run of all eight tests |
 | `evidence/demo_run.txt` | Output of `python -m interface.main --demo` |
 
-The three TDD files were recorded before the layer folders moved to the project root, so their module paths read `coffee_coop.domain` rather than `domain`. The code and the test are otherwise the same.
+The three original pytest TDD files predate the folder reorganisation. The final eight tests use Python's built-in unittest framework, with expanded coverage. The original logs are retained as historical evidence, not claimed as a run of the revised project. The current final test output is in full_test_run.txt.
+
+The reproduced RED/GREEN sequence is a verification of the TDD example, not a claim that the revised tests were historically written first. RED temporarily replaced the body of MoistureReading.__post_init__ with pass in an isolated copy; GREEN ran the same test against the unchanged final implementation.
+
+The project deliberately keeps a graded delivery when a suspended account refuses credit. Recovery or retry of rejected credits is outside scope. The price board is editable reference data, and Bag objects and public aggregate state are protected against accidental changes.
 
 ## AI use
 
-Claude (Anthropic) assisted with the domain design, implementation, tests and documentation. The group reviewed the work and can explain every part.
+Claude (Anthropic) assisted with the initial design, implementation, tests and documentation. ChatGPT assisted with the final audit, encapsulation fixes, test coverage, documentation and slide corrections. The group is responsible for reviewing and explaining the work.

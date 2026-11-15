@@ -23,11 +23,19 @@ class FarmerAccount(AggregateRoot):
     def __init__(self, farmer_id: str, name: str,
                  status: AccountStatus = AccountStatus.ACTIVE):
         super().__init__()
-        self.farmer_id = farmer_id
+        self._farmer_id = farmer_id
         self.name = name
-        self.status = status
+        self._status = status
         self._balance = Money.zero()
         self._credited_deliveries: set[str] = set()
+
+    @property
+    def farmer_id(self):
+        return self._farmer_id
+
+    @property
+    def status(self):
+        return self._status
 
     @property
     def balance(self) -> Money:
@@ -37,14 +45,14 @@ class FarmerAccount(AggregateRoot):
         return delivery_id in self._credited_deliveries
 
     def suspend(self) -> None:
-        self.status = AccountStatus.SUSPENDED
+        self._status = AccountStatus.SUSPENDED
 
     def credit(self, delivery_id: str, amount: Money) -> None:
         if self.status is AccountStatus.SUSPENDED:
             raise AccountSuspended(
-                f"Account {self.farmer_id} is suspended and cannot be credited")
+                f"BR5: Account {self.farmer_id} is suspended and cannot be credited")
         if delivery_id in self._credited_deliveries:
             raise DeliveryAlreadyCredited(
-                f"Delivery {delivery_id} was already credited to {self.farmer_id}")
+                f"BR5: Delivery {delivery_id} was already credited to {self.farmer_id}")
         self._balance = self._balance + amount
         self._credited_deliveries.add(delivery_id)

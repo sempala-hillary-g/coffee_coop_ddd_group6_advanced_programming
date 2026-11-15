@@ -1,1 +1,1 @@
-pytest>=7.0
+# No third-party dependencies. Python 3.10+ includes unittest.

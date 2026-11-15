@@ -5,7 +5,7 @@ Child entities: Bag (identity = bag number within its delivery).
 
 BR2 (state): Received -> Graded. A graded delivery cannot be graded again
              and cannot take more bags.
-BR3 (invariant): 1 to 10 bags, unique bag numbers, each bag a valid Weight.
+BR3 (invariant): 0 to 10 bags while received, unique bag numbers, valid Weight.
                  A delivery with no bags cannot be graded.
 """
 from dataclasses import dataclass
@@ -33,7 +33,7 @@ class DeliveryStatus(Enum):
     GRADED = "Graded"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Bag:
     """Entity inside the Delivery aggregate. Two bags can weigh the same and
     still be different bags, so identity comes from the bag number."""
@@ -45,14 +45,35 @@ class Delivery(AggregateRoot):
     def __init__(self, delivery_id: str, farmer_id: str,
                  coffee_type: CoffeeType, delivery_date: date):
         super().__init__()
-        self.delivery_id = delivery_id
-        self.farmer_id = farmer_id
-        self.coffee_type = coffee_type
-        self.delivery_date = delivery_date
-        self.status = DeliveryStatus.RECEIVED
+        self._delivery_id = delivery_id
+        self._farmer_id = farmer_id
+        self._coffee_type = coffee_type
+        self._delivery_date = delivery_date
+        self._status = DeliveryStatus.RECEIVED
         self._bags: list[Bag] = []
-        self.moisture: MoistureReading | None = None
-        self.payout: Money | None = None
+        self._moisture: MoistureReading | None = None
+        self._payout: Money | None = None
+
+    @property
+    def delivery_id(self): return self._delivery_id
+
+    @property
+    def farmer_id(self): return self._farmer_id
+
+    @property
+    def coffee_type(self): return self._coffee_type
+
+    @property
+    def delivery_date(self): return self._delivery_date
+
+    @property
+    def status(self): return self._status
+
+    @property
+    def moisture(self): return self._moisture
+
+    @property
+    def payout(self): return self._payout
 
     @property
     def bags(self) -> tuple:
@@ -77,9 +98,9 @@ class Delivery(AggregateRoot):
         if not self._bags:                                          # BR3
             raise EmptyDelivery(
                 f"BR3: delivery {self.delivery_id} has no bags to grade")
-        self.moisture = moisture
-        self.payout = payout
-        self.status = DeliveryStatus.GRADED
+        self._moisture = moisture
+        self._payout = payout
+        self._status = DeliveryStatus.GRADED
         self.record_event(DeliveryGraded(self.delivery_id, self.farmer_id, payout))  # BR5
 
     def _ensure_not_graded(self) -> None:
